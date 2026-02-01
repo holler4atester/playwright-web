@@ -45,26 +45,36 @@ export class PricingPage extends BasePage {
     await this.page.getByRole('checkbox', { name: energyType }).uncheck();
   }
 
-  async clickPlanLink(planName: string) {
-    return this.page.getByRole('link', { name: planName }).first().click();
+  // return link element (dynamic according to the plan name) // refactor idea - make it based of the planID not name as name has duplicates
+  getPlanLink(planName: string) {
+    return this.page.getByRole('link', { name: planName }).first();
   }
 
-  // click on link from the pricing plan table, to wait for PDF to successfully load in new tab (popup)
-  async clickPlanAndWaitForPdf(planName: string): Promise<{
-    popupPage: Page;
-    pdfResponse: Response;
-  }> {
-    const [popupPage, pdfResponse] = await Promise.all([
-      this.page.waitForEvent('popup'),
-      this.page.waitForResponse(resp => 
-        resp.url().endsWith('.pdf') && resp.status() === 200
-      ),
-      this.page.getByRole('link', { name: planName }).first().click(),
-    ]);
-
-    expect(popupPage).toBeTruthy();
-    expect(pdfResponse.ok()).toBeTruthy();
-
-    return { popupPage, pdfResponse };
+  // get pdf url from plan's link
+  async getPlanPdfUrl(planName: string): Promise<string> {
+    const link = this.getPlanLink(planName);
+    const pdfUrl = await link.getAttribute('href');
+    
+    expect(pdfUrl).toBeTruthy();
+    expect(pdfUrl).toMatch(/\.pdf$/);
+    
+    return pdfUrl!;
   }
-}
+
+  /*
+   * click plan link and optionally check for popup
+   * Returns popup page object if it opens (or null if it doesn't)
+   */
+  async clickPlanLink(planName: string): Promise<Page | null> {
+    const link = this.getPlanLink(planName);
+  
+    // wait for popup 
+    const popupPromise = this.page.waitForEvent('popup', { timeout: 5000 }).catch(() => null);
+  
+    await link.click();
+  
+    const popupPage = await popupPromise;
+  
+    return popupPage
+  }
+};

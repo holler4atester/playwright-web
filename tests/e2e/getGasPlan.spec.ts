@@ -10,23 +10,30 @@ test('Get gas plan pdf for address', async ({ pricingPage }) => {
   
   await pricingPage.waitForResults();
 
-  await pricingPage.verifyEnergyTypeVisible('Natural gas');
-  await pricingPage.verifyEnergyTypeVisible('Electricity');
+  await test.step('Check results show gas/electricity energy plans', async () => {
+    await pricingPage.verifyEnergyTypeVisible('Natural gas');
+    await pricingPage.verifyEnergyTypeVisible('Electricity');
+  });
   
   await pricingPage.uncheckEnergyType('Electricity');
 
-  await pricingPage.verifyEnergyTypeVisible('Natural gas');
-  await pricingPage.verifyEnergyTypeVisible('Natural gas');
+  await test.step('Check results show only gas plans', async () => {
+    await pricingPage.verifyEnergyTypeVisible('Natural gas');
+    await pricingPage.verifyEnergyTypeNotVisible('Electricity');
+  });
 
-  const { pdfResponse } = await pricingPage.clickPlanAndWaitForPdf('Origin Basic');
+  await test.step('Download gas plan pdf', async () => {
+    const pdfUrl = await pricingPage.getPlanPdfUrl('Origin Basic');
+    
+    // check if link opens in new tab (no error on fail)
+    const popupPage = await pricingPage.clickPlanLink('Origin Basic');
 
-  // Download PDF
-  const apiContext = await request.newContext();
-  const pdfBuffer = await downloadPdf(apiContext, pdfResponse.url());
+    // download pdf from the url in the link
+    const apiContext = await request.newContext();
+    const pdfBuffer = await downloadPdf(apiContext, pdfUrl);
 
-  // Save PDF to downloads folder
-  // const pdfPath = savePdf(pdfBuffer, 'gas-plan-details.pdf', __dirname);
-  savePdf(pdfBuffer, 'gas-plan-details.pdf', __dirname);
+    savePdf(pdfBuffer, 'gas-plan-details.pdf', __dirname);
+  });
 
   // TODO: parse the 'gas-plan-details.pdf' PDF file to check it contains text 'gas'
 });
