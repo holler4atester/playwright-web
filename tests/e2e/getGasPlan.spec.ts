@@ -2,10 +2,7 @@ import { test, expect } from '../../fixtures/pages';
 import { request } from '@playwright/test';
 import { downloadPdf, savePdf } from '../../helpers/pdfHelper';
 
-// import { PricingPage } from '../../fixtures/pages'
-
 test('Get gas plan pdf for address', async ({ pricingPage }) => {
-  //const pricingPage = new PricingPage(page);
 
   await pricingPage.goto();
   await pricingPage.searchAddress('17 Bolinda Rd Balwyn North');
@@ -21,12 +18,15 @@ test('Get gas plan pdf for address', async ({ pricingPage }) => {
   await pricingPage.verifyEnergyTypeVisible('Natural gas');
   await pricingPage.verifyEnergyTypeVisible('Natural gas');
 
-  const { popupPage, pdfResponse } = await pricingPage.clickPlanAndWaitForPdf('Origin Basic');
+  const { pdfResponse } = await pricingPage.clickPlanAndWaitForPdf('Origin Basic');
 
   // Download PDF
   const apiContext = await request.newContext();
   const pdfBuffer = await downloadPdf(apiContext, pdfResponse.url());
 
   // Save PDF to downloads folder
-  const pdfPath = savePdf(pdfBuffer, 'gas-plan-details.pdf', __dirname);
+  // const pdfPath = savePdf(pdfBuffer, 'gas-plan-details.pdf', __dirname);
+  savePdf(pdfBuffer, 'gas-plan-details.pdf', __dirname);
+
+  // TODO: parse the 'gas-plan-details.pdf' PDF file to check it contains text 'gas'
 });
