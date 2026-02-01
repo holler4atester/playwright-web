@@ -1,24 +1,40 @@
-import { Page, Locator, Response, expect } from '@playwright/test';
+import { Page, Locator, expect } from '@playwright/test';
 import { BasePage } from './BasePage';
 
 export class PricingPage extends BasePage {
   // locators
   readonly addressInput: Locator;
+  readonly addressOptions: Locator;
   readonly resultsContainer: Locator;
-  readonly electricityCheckbox: Locator;
+  readonly energyTypeCheckboxes: Locator;
+  readonly planLinks: Locator;
 
   constructor(page: Page) {
     super(page);
     
-    this.addressInput = page.getByRole('combobox', { name: /address/i });
-    this.resultsContainer = this.getByDataId('searchResultsContainer');
-    this.electricityCheckbox = page.getByRole('checkbox', { name: 'Electricity' });
+    this.addressInput = page.getByLabel('Your address'); 
+    this.addressOptions = page.getByRole('option');
+    this.resultsContainer = this.getByDataId('searchResultsContainer'); //TODO: consider checking for table/row presence instead
+    this.energyTypeCheckboxes = page.getByRole('checkbox');
+    this.planLinks = page.getByRole('link');
   }
 
+  // Locator helpers (dynamic locators)
+  getEnergyTypeText(type: string): Locator {
+    return this.resultsContainer.getByText(type).first();
+  }
+
+  getEnergyTypeCheckbox(type: string): Locator {
+    return this.page.getByRole('checkbox', { name: type });
+  }
+
+  getPlanLink(planName: string): Locator {
+    return this.planLinks.filter({ hasText: planName }).first();
+  }
+
+  // Navigation
   async goto() {
     await super.goto('/pricing.html');
-    await this.page.waitForURL('**/pricing.html');
-    await this.page.waitForURL('**/pricing.html');
   }
 
   // Actions
@@ -27,56 +43,38 @@ export class PricingPage extends BasePage {
   }
 
   async selectAddressOption(option: string) {
-    await this.page.getByRole('option', { name: option }).click();
+    await this.addressOptions.filter({ hasText: option }).click();
   }
 
   async waitForResults() {
-    await expect(this.resultsContainer).toBeVisible();
-  }
-
-  // verifications
-  async verifyEnergyTypeVisible(energyType: 'Natural gas' | 'Electricity') {
-    await expect(this.resultsContainer.getByText(energyType).first()).toBeVisible();
-  }
-
-  async verifyEnergyTypeNotVisible(energyType: 'Natural gas' | 'Electricity') {
-    await expect(this.resultsContainer.getByText(energyType).first()).not.toBeVisible();
+    await expect(this.resultsContainer).toBeVisible({ timeout: 10000 });
   }
 
   async uncheckEnergyType(energyType: 'Natural gas' | 'Electricity') {
-    await this.page.getByRole('checkbox', { name: energyType }).uncheck();
+    await this.getEnergyTypeCheckbox(energyType).uncheck();
   }
 
-  // return link element (dynamic according to the plan name) // refactor idea - make it based of the planID not name as name has duplicates
-  getPlanLink(planName: string) {
-    return this.page.getByRole('link', { name: planName }).first();
+  // Verifications
+  async verifyEnergyTypeVisible(energyType: 'Natural gas' | 'Electricity') {
+    await expect(this.getEnergyTypeText(energyType)).toBeVisible();
   }
 
-  // get pdf url from plan's link
+  async verifyEnergyTypeNotVisible(energyType: 'Natural gas' | 'Electricity') {
+    await expect(this.getEnergyTypeText(energyType)).not.toBeVisible();
+  }
+
+  // Plan methods
   async getPlanPdfUrl(planName: string): Promise<string> {
-    const link = this.getPlanLink(planName);
-    const pdfUrl = await link.getAttribute('href');
-    
+    const pdfUrl = await this.getPlanLink(planName).getAttribute('href');
     expect(pdfUrl).toBeTruthy();
     expect(pdfUrl).toMatch(/\.pdf$/);
-    
     return pdfUrl!;
   }
 
-  /*
-   * click plan link and optionally check for popup
-   * Returns popup page object if it opens (or null if it doesn't)
-   */
   async clickPlanLink(planName: string): Promise<Page | null> {
     const link = this.getPlanLink(planName);
-  
-    // wait for popup 
     const popupPromise = this.page.waitForEvent('popup', { timeout: 5000 }).catch(() => null);
-  
     await link.click();
-  
-    const popupPage = await popupPromise;
-  
-    return popupPage
+    return await popupPromise;
   }
-};
+}

@@ -7,24 +7,12 @@ export class BasePage {
     this.page = page;
   }
 
-  // navigation
+  // Navigation
   async goto(url: string) {
     await this.page.goto(url);
   }
 
-  // waits
-  async waitForURL(pattern: string | RegExp) {
-    await this.page.waitForURL(pattern);
-  }
-
-  async waitForLoadState(state: 'load' | 'domcontentloaded' | 'networkidle' = 'load') {
-    await this.page.waitForLoadState(state);
-  }
-
-  // locator methods
-  getByTestId(testId: string): Locator {
-    return this.page.getByTestId(testId);
-  }
+  // Locator helpers
 
   getByDataId(dataId: string): Locator {
     return this.page.locator(`[data-id="${dataId}"]`);
