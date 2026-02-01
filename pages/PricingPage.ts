@@ -1,4 +1,4 @@
-import { Page, Locator, expect } from '@playwright/test';
+import { Page, Locator, Response, expect } from '@playwright/test';
 import { BasePage } from './BasePage';
 
 export class PricingPage extends BasePage {
@@ -47,5 +47,24 @@ export class PricingPage extends BasePage {
 
   async clickPlanLink(planName: string) {
     return this.page.getByRole('link', { name: planName }).first().click();
+  }
+
+  // click on link from the pricing plan table, to wait for PDF to successfully load in new tab (popup)
+  async clickPlanAndWaitForPdf(planName: string): Promise<{
+    popupPage: Page;
+    pdfResponse: Response;
+  }> {
+    const [popupPage, pdfResponse] = await Promise.all([
+      this.page.waitForEvent('popup'),
+      this.page.waitForResponse(resp => 
+        resp.url().endsWith('.pdf') && resp.status() === 200
+      ),
+      this.page.getByRole('link', { name: planName }).first().click(),
+    ]);
+
+    expect(popupPage).toBeTruthy();
+    expect(pdfResponse.ok()).toBeTruthy();
+
+    return { popupPage, pdfResponse };
   }
 }
