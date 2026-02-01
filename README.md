@@ -16,7 +16,7 @@ cd origin-test
 npm install
 
 # Install playwright's browsers
-npm run install:browsers
+npx playwright install
 ```
 
 ## Run tests on local machine (cmd line): 

@@ -4,7 +4,6 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "install:browsers": "playwright install --with-deps",
     "typecheck": "tsc --noEmit",
     "test": "playwright test",
     "test:headed": "playwright test --headed",
