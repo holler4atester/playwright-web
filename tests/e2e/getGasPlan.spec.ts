@@ -32,7 +32,8 @@ test('Get gas plan pdf for address', async ({ pricingPage }) => {
   });
 
   /* note parsing the pdf from URL instead of from the file system as per the test requirements.
-  due to: simplicity/maintainability, parsing the actual pdf (less transformmation), in line with pdf-parse pkg docs)*/
+  due to: simplicity/maintainability, parsing the actual pdf (less transformmation)
+  would request review round this decision*/
   
   await test.step('Verify PDF is for gas plan', async () => {
     const pdfUrl = await pricingPage.getPlanPdfUrl('Origin Basic');
