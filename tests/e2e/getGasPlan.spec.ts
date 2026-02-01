@@ -2,15 +2,19 @@ import { test, expect, request } from '@playwright/test';
 import fs from 'fs';
 import path from 'path';
 
-test('CodeGen e2e test and verify PDF content', async ({ page }) => {
+test('Get gas plan pdf for address', async ({ page }) => {
   await page.goto('/pricing.html');
-  await page.getByRole('combobox', { name: 'Your address' }).fill('17 Bolinda Rd Balwyn North');
+  await page.getByRole('combobox', { name: /address/i }).fill('17 Bolinda Rd Balwyn North');
   await page.getByRole('option', { name: '17 Bolinda Road, BALWYN NORTH VIC' }).click();
-  await expect(page.getByRole('cell', { name: 'Natural gas' }).first()).toBeVisible();
-  await expect(page.getByRole('cell', { name: 'Electricity' }).first()).toBeVisible();
+  
+  const results = page.locator('[data-id="searchResultsContainer"]');
+  await expect(results).toBeVisible();
+  await expect(results.getByText('Natural gas').first()).toBeVisible();
+  await expect(results.getByText('Electricity').first()).toBeVisible();
+  
   await page.getByRole('checkbox', { name: 'Electricity' }).uncheck();
-  await expect(page.getByRole('cell', { name: 'Natural gas' }).first()).toBeVisible();
-  await expect(page.getByRole('cell', { name: 'Electricity' }).first()).not.toBeVisible();
+  await expect(results.getByText('Natural gas').first()).toBeVisible();
+  await expect(results.getByText('Electricity').first()).not.toBeVisible();
 
   const [planDetailsTab, pdfResponse] = await Promise.all([
     page.waitForEvent('popup'),
