@@ -38,14 +38,14 @@ export default defineConfig({
     },
     
     // Mobile (most common devices) NOT YET SUPPORTED BY TEST SCRIPTS (minor enhancements for mobile viewports required)
-    /*{
+    {
       name: 'Mobile Chrome',
       use: { ...devices['Pixel 5'] },
     },
     {
       name: 'Mobile Safari',
       use: { ...devices['iPhone 12'] },
-    },*/
+    },
   ],
   /* Run your local dev server before starting the tests */
   // webServer: {

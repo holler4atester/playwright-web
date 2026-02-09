@@ -21,7 +21,7 @@ export class PricingPage extends BasePage {
 
   // Locator helpers (dynamic locators)
   getEnergyTypeText(type: string): Locator {
-    return this.resultsContainer.getByText(type).first();
+    return this.resultsContainer.getByText(type).locator('visible=true').first();
   }
 
   getEnergyTypeCheckbox(type: string): Locator {
@@ -29,7 +29,7 @@ export class PricingPage extends BasePage {
   }
 
   getPlanLink(planName: string): Locator {
-    return this.planLinks.filter({ hasText: planName }).first();
+    return this.planLinks.filter({ hasText: planName }).locator('visible=true').first();
   }
 
   // Navigation
